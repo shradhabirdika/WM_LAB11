@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Intro to MapView - Create a 2D map | Sample | ArcGIS Maps SDK for JavaScript 4.30</title>
+  <style>
+    html, body, #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css" />
+  <script src="https://js.arcgis.com/4.30/"></script>
+
+  <script>
+    require([
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/layers/FeatureLayer",
+      "esri/widgets/Legend",
+      "esri/widgets/LayerList",
+      "esri/Color"
+    ], (Map, MapView, FeatureLayer, Legend, LayerList, Color) => {
+      
+      const map = new Map({
+        basemap: "dark-gray"
+      });
+
+      const view = new MapView({
+        container: "viewDiv",
+        map: map,
+        zoom: 11,
+        center: [-71.39, 41.83] // longitude, latitude
+      });
+
+      const colors = [
+        "#C0C0C0", // Gray for 2011
+        "#00FF00", // Green for 2012
+        "#0000FF", // Blue for 2013
+        "#FFFF00", // Yellow for 2014
+        "#FF00FF", // Magenta for 2015
+        "#00FFFF", // Cyan for 2016
+        "#FFA500", // Orange for 2017
+        "#800080", // Purple for 2018
+        "#008000", // Green for 2019
+        "#808000", // Olive for 2020
+        "#800000", // Maroon for 2021
+        "#008080", // Teal for 2022
+        "#FF0000", // Red for other years
+        "#000000"  // Black
+      ];
+
+      const commonProperties = {
+        type: "simple-fill",
+        outline: { width: 0 }
+      };
+
+      // Define unique colors for each year using spread syntax and color array
+      const yearSymbols = colors.map(color => ({ ...commonProperties, color }));
+
+      // Renderer for the years
+      const yrRenderer = {
+        type: "unique-value",
+        legendOptions: {
+          title: "Built year"
+        },
+        defaultSymbol: yearSymbols[13], // Black color for "Other year"
+        defaultLabel: "Other year",
+        field: "year",
+        uniqueValueInfos: [
+          { value: "2011", symbol: yearSymbols[0], label: "2011" },
+          { value: "2012", symbol: yearSymbols[1], label: "2012" },
+          { value: "2013", symbol: yearSymbols[2], label: "2013" },
+          { value: "2014", symbol: yearSymbols[3], label: "2014" },
+          { value: "2015", symbol: yearSymbols[4], label: "2015" },
+          { value: "2016", symbol: yearSymbols[5], label: "2016" },
+          { value: "2017", symbol: yearSymbols[6], label: "2017" },
+          { value: "2018", symbol: yearSymbols[7], label: "2018" },
+          { value: "2019", symbol: yearSymbols[8], label: "2019" },
+          { value: "2020", symbol: yearSymbols[9], label: "2020" },
+          { value: "2021", symbol: yearSymbols[10], label: "2021" },
+          { value: "2022", symbol: yearSymbols[11], label: "2022" }
+        ]
+      };
+
+      // Popup template
+      const template = {
+        title: "Solar Panel",
+        content: [
+          {
+            type: "fields",
+            fieldInfos: [
+              { fieldName: "date_built", label: "Date Built" },
+              { fieldName: "solar_area", label: "Solar Area" },
+              { fieldName: "cleared_ar", label: "Cleared Area" }
+            ]
+          },
+          {
+            type: "media",
+            title: "Land Cover",
+            mediaInfos: [
+              {
+                title: "<b>Land Cover</b>",
+                type: "column-chart",
+                caption: "This graph shows the land cover percentage surrounding the solar panel",
+                value: {
+                  fields: ["forest", "wetland", "developed", "water", "grassland", "agriculture", "snowy", "barren", "unknown"],
+                  colors: [
+                    new Color("#006400"), // Forest - Dark Green
+                    new Color("#2E8B57"), // Wetland - Medium Sea Green
+                    new Color("#A9A9A9"), // Developed - Dark Gray
+                    new Color("#1E90FF"), // Water - Dodger Blue
+                    new Color("#7CFC00"), // Grassland - Lawn Green
+                    new Color("#FFD700"), // Agriculture - Gold
+                    new Color("#FFFFFF"), // Snowy - White
+                    new Color("#D2B48C"), // Barren - Tan
+                    new Color("#808080")  // Unknown - Gray
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      };
+
+      // Feature layer
+      const baseLayer = new FeatureLayer({
+        portalItem: {
+          id: "a171604da3dc42b0befc156d8b23b9d5"
+        },
+        popupTemplate: template,
+        renderer: yrRenderer
+      });
+
+      map.add(baseLayer);
+
+      // Add widgets only after the layer is fully loaded
+      baseLayer.when(() => {
+        const legend = new Legend({
+          view: view,
+          layerInfos: [{ layer: baseLayer, title: "Solar Panel" }]
+        });
+        
+        const layerList = new LayerList({
+          view: view
+        });
+
+        // Add widgets to the view
+        view.ui.add(legend, "bottom-right");
+        view.ui.add(layerList, "top-right");
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+</body>
+</html>
